@@ -1,1 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Registration</title>
+</head>
+<body>
 
+<h2>Student Registration</h2>
+
+<form action="/submit" method="POST" onsubmit="return checkForm(event)">
+
+<input type="text" name="name" placeholder="Full Name" required><br><br>
+<input type="text" name="father_name" placeholder="Father Name" required><br><br>
+<input type="text" name="caste" placeholder="Caste" required><br><br>
+
+<input type="text" id="phone" name="phone" placeholder="Phone (10 digits)" required>
+<button type="button" onclick="sendOTP()">Send OTP</button><br><br>
+
+<input type="text" id="otp" placeholder="Enter OTP">
+<button type="button" onclick="verifyOTP()">Verify OTP</button>
+
+<p id="status"></p>
+
+<input type="text" name="aadhaar" placeholder="Aadhaar (12 digits)" required><br><br>
+
+<button type="submit">Register</button>
+
+</form>
+
+<script>
+let otpVerified = false;
+
+function sendOTP() {
+    let phone = document.getElementById("phone").value;
+
+    fetch("/send_otp", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: "phone=" + phone
+    }).then(r => r.json()).then(d => alert(d.message));
+}
+
+function verifyOTP() {
+    let phone = document.getElementById("phone").value;
+    let otp = document.getElementById("otp").value;
+
+    fetch("/verify_otp", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: "phone=" + phone + "&otp=" + otp
+    }).then(r => r.json()).then(d => {
+        if (d.status === "success") {
+            otpVerified = true;
+            document.getElementById("status").innerText = "Verified";
+        } else {
+            alert(d.message);
+        }
+    });
+}
+
+function checkForm(e) {
+    if (!otpVerified) {
+        alert("Verify OTP first");
+        e.preventDefault();
+        return false;
+    }
+    return true;
+}
+</script>
+
+</body>
+</html>
