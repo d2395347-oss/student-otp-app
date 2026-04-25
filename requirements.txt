@@ -1,0 +1,6 @@
+flask
+gunicorn
+twilio
+mysql-connector-python
+python-dotenv
+openpyxl
