@@ -6,173 +6,6 @@
 <title>Student Registration</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-
-    <!-- this line has been added as on 17 Jun 20206 -->
-    .ai-banner {
-    max-width:900px;
-    margin:20px auto 35px;
-    padding:30px;
-    border-radius:25px;
-
-    display:flex;
-    align-items:center;
-    gap:25px;
-
-    background:
-    linear-gradient(135deg,#1a3c6e,#4b7bec);
-
-    color:white;
-
-    box-shadow:
-    0 15px 40px rgba(0,0,0,.15);
-
-    animation: slideAI .8s ease;
-}
-
-
-.ai-icon {
-    font-size:70px;
-
-    background:white;
-    color:#1a3c6e;
-
-    width:100px;
-    height:100px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    border-radius:50%;
-
-    animation:pulse 2s infinite;
-}
-
-
-.ai-banner h1 {
-    font-size:32px;
-    margin-bottom:10px;
-}
-
-
-.ai-banner p {
-    opacity:.9;
-    line-height:1.6;
-}
-
-
-.ai-banner button {
-
-    margin-top:15px;
-
-    padding:12px 25px;
-
-    border:none;
-
-    border-radius:30px;
-
-    background:#e8a020;
-
-    color:white;
-
-    font-size:16px;
-
-    cursor:pointer;
-
-}
-
-
-.ai-banner button:hover {
-
-    transform:scale(1.05);
-
-}
-
-
-@keyframes pulse {
-
-    50% {
-        transform:scale(1.1);
-    }
-
-}
-
-
-@keyframes slideAI {
-
-    from {
-        opacity:0;
-        transform:translateY(-30px);
-    }
-
-    to {
-        opacity:1;
-        transform:translateY(0);
-    }
-
-}
-
-
-@media(max-width:600px){
-
-.ai-banner{
-    flex-direction:column;
-    text-align:center;
-}
-
-}
-
-<!-- ends here -->
-
-<!-- this line has been added as on 17 Jun 2026 -->
-#aiBox {
-
-display:none;
-
-position:fixed;
-
-right:25px;
-bottom:25px;
-
-width:320px;
-
-background:white;
-
-padding:25px;
-
-border-radius:20px;
-
-box-shadow:0 10px 40px rgba(0,0,0,.25);
-
-z-index:9999;
-
-}
-
-
-#aiBox h3 {
-
-color:#1a3c6e;
-
-}
-
-
-#aiBox button {
-
-background:#1a3c6e;
-
-color:white;
-
-border:none;
-
-padding:10px 20px;
-
-border-radius:20px;
-
-}
-<!-- ends here -->
-
-
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -473,46 +306,6 @@ border-radius:20px;
 </head>
 <body>
 
-    <!-- this line has been added as on 17 Jun 2026 -->
-     <div class="ai-banner">
-    <div class="ai-icon">🤖</div>
-
-    <div>
-        <h1>AI Smart Admission Assistant</h1>
-        <p>
-            Complete your registration with our AI-powered guidance.
-            We help you fill forms faster, check mistakes, and provide instant support.
-        </p>
-
-        <button onclick="startAI()">
-            ✨ Start AI Assistant
-        </button>
-    </div>
-</div>
-<!-- ends here -->
-
-<!-- the lines has been added as on 17 Jun 2026 -->
-
-<div id="aiBox">
-
-<h3>🤖 AI Assistant</h3>
-
-<p>
-Hello! I can help you complete your admission form.
-</p>
-
-<ul>
-<li>✔ Check missing fields</li>
-<li>✔ Guide document upload</li>
-<li>✔ Explain admission process</li>
-</ul>
-
-<button onclick="closeAI()">Close</button>
-
-</div>
-
-<!-- ends here -->
-
 <!-- Deadline Banner -->
 {% if closed %}
 <div style="background:#d63031;color:white;text-align:center;padding:14px;font-weight:600;font-size:15px;position:sticky;top:0;z-index:100;">
@@ -755,6 +548,9 @@ Hello! I can help you complete your admission form.
             <div class="card-body">
 
                 <!-- Verification Summary Strip -->
+                <p style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:12px;background:rgba(26,60,110,0.06);padding:10px 14px;border-radius:8px;">
+                    ✅ You only need to verify <u>ONE</u> of the three methods below — choose whichever is easiest for you.
+                </p>
                 <div class="verify-summary">
                     <div class="verify-pill pending" id="pill-mobile">📱 Mobile: Pending</div>
                     <div class="verify-pill pending" id="pill-whatsapp">💬 WhatsApp: Pending</div>
@@ -1257,17 +1053,9 @@ function checkForm(event) {
     const panOk = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
     markField('pan_no', panOk); if (!panOk) valid = false;
 
-    // All 3 OTPs must be verified
-    if (!mobileVerified) {
-        showToast('❌ Please verify your Mobile number', 'error');
-        valid = false;
-    }
-    if (!whatsappVerified) {
-        showToast('❌ Please verify your WhatsApp number', 'error');
-        valid = false;
-    }
-    if (!emailVerified) {
-        showToast('❌ Please verify your Email address', 'error');
+    // At least ONE of the 3 verification methods must be completed
+    if (!mobileVerified && !whatsappVerified && !emailVerified) {
+        showToast('❌ Please verify at least one: Mobile, WhatsApp, or Email', 'error');
         valid = false;
     }
 
@@ -1287,48 +1075,5 @@ function checkForm(event) {
 // Init
 updateProgress();
 </script>
-
-<!-- this line has been added as on 17 Jun 2026 -->
- <!-- Your existing HTML content -->
-
-<div id="aiBox">
-
-<h3>🤖 AI Assistant</h3>
-
-<p>
-Hello! I can help you complete your admission form.
-</p>
-
-<ul>
-<li>✔ Check missing fields</li>
-<li>✔ Guide document upload</li>
-<li>✔ Explain admission process</li>
-</ul>
-
-<button onclick="closeAI()">Close</button>
-
-</div>
-
-
-<!-- Your JavaScript goes here -->
-<script>
-
-function startAI(){
-
-    document.getElementById("aiBox").style.display="block";
-
-}
-
-
-function closeAI(){
-
-    document.getElementById("aiBox").style.display="none";
-
-}
-
-</script>
-
-<!-- ends here -->
-
 </body>
 </html>

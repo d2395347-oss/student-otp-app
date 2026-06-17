@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ school_name }} — Admissions Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --primary: #1a3c6e;
+    --primary-deep: #0f2647;
+    --primary-light: #2a5caa;
+    --accent: #e8a020;
+    --success: #1a9e5c;
+    --danger: #d63031;
+    --pending: #e67e22;
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --text: #1e2a3a;
+    --muted: #6b7a90;
+    --border: #d0dbe8;
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* ===== TOP BAR ===== */
+.topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px clamp(20px, 5vw, 56px);
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--primary); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-weight: 700; font-size: 17px;
+}
+.brand-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 17px; color: var(--primary); }
+.admin-link {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    text-decoration: none; padding: 9px 18px; border-radius: 8px;
+    border: 1.5px solid var(--border); transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.admin-link:hover { border-color: var(--primary); color: var(--primary); background: white; }
+
+/* ===== HERO ===== */
+.hero {
+    position: relative;
+    background: linear-gradient(155deg, var(--primary-deep) 0%, var(--primary) 55%, var(--primary-light) 100%);
+    color: white;
+    padding: clamp(48px, 8vw, 88px) clamp(20px, 5vw, 56px) clamp(64px, 10vw, 110px);
+    overflow: hidden;
+}
+.hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,0.10) 1.5px, transparent 0);
+    background-size: 28px 28px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+.hero-inner { position: relative; max-width: 880px; margin: 0 auto; text-align: center; }
+
+.status-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    padding: 7px 18px; border-radius: 50px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.4px;
+    margin-bottom: 26px; opacity: 0; animation: fadeUp 0.7s ease forwards;
+}
+.status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #5fe89a; box-shadow: 0 0 0 3px rgba(95,232,154,0.25); }
+.status-pill.closed .dot { background: #ff9a9a; box-shadow: 0 0 0 3px rgba(255,154,154,0.25); }
+
+.hero h1 {
+    font-family: 'Playfair Display', serif; font-weight: 800;
+    font-size: clamp(2.1rem, 5.2vw, 3.4rem); line-height: 1.12;
+    margin-bottom: 16px; opacity: 0; animation: fadeUp 0.7s ease 0.08s forwards;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p.lede {
+    font-size: clamp(14px, 1.6vw, 16.5px); color: rgba(255,255,255,0.78);
+    max-width: 560px; margin: 0 auto 38px; line-height: 1.65;
+    opacity: 0; animation: fadeUp 0.7s ease 0.16s forwards;
+}
+
+.cta-row {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.7s ease 0.24s forwards;
+}
+.cta {
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+    padding: 16px 30px; border-radius: 12px; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: transform 0.18s, box-shadow 0.18s;
+}
+.cta:hover { transform: translateY(-2px); }
+.cta-primary { background: var(--accent); color: var(--primary-deep); box-shadow: 0 10px 30px rgba(232,160,32,0.35); }
+.cta-primary:hover { box-shadow: 0 14px 36px rgba(232,160,32,0.45); }
+.cta-secondary { background: rgba(255,255,255,0.1); color: white; border: 1.5px solid rgba(255,255,255,0.35); }
+.cta-secondary:hover { background: rgba(255,255,255,0.18); }
+.cta.disabled { opacity: 0.5; pointer-events: none; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== SEAT SIGNATURE STRIP (overlapping hero/body) ===== */
+.seat-panel {
+    max-width: 980px; margin: -52px auto 0; position: relative; z-index: 2;
+    background: white; border-radius: 18px; padding: 28px 30px;
+    box-shadow: 0 20px 50px rgba(15,38,71,0.16);
+}
+.seat-panel-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
+}
+.seat-panel-head h2 {
+    font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--primary);
+}
+.seat-overall { font-size: 13px; color: var(--muted); font-weight: 600; }
+.seat-overall strong { color: var(--text); }
+
+.overall-bar-wrap { background: var(--bg); border-radius: 6px; height: 10px; overflow: hidden; margin-bottom: 22px; }
+.overall-bar { height: 100%; border-radius: 6px; width: 0%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); transition: width 1.1s cubic-bezier(.2,.8,.2,1); }
+
+.seat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px,1fr)); gap: 10px; }
+.seat-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
+.seat-item .cls-name { font-size: 12.5px; font-weight: 700; color: var(--primary); }
+.seat-bar-wrap { background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; margin: 7px 0 5px; }
+.seat-bar { height: 100%; border-radius: 4px; width: 0%; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+.seat-tag { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.full  { background: #fdecea; color: var(--danger); }
+.avail { background: #e8f5e9; color: var(--success); }
+.low   { background: #fff3e0; color: var(--pending); }
+
+/* ===== PATH CARDS ===== */
+.paths {
+    max-width: 980px; margin: 44px auto 0; padding: 0 20px 64px;
+    display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px;
+}
+@media(max-width: 760px) { .paths { grid-template-columns: 1fr; } .seat-panel { margin: -40px 16px 0; padding: 22px; } }
+
+.path-card {
+    background: white; border-radius: 16px; padding: 30px;
+    box-shadow: 0 4px 24px rgba(26,60,110,0.08); border: 1.5px solid var(--border);
+}
+.path-card .tag { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.path-card h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--primary); margin-bottom: 8px; }
+.path-card p { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+.path-card .link-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-card { font-size: 13.5px; font-weight: 700; padding: 11px 20px; border-radius: 9px; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
+.btn-card.solid { background: var(--primary); color: white; }
+.btn-card.solid:hover { background: var(--primary-deep); }
+.btn-card.ghost { background: transparent; color: var(--primary); border: 1.5px solid var(--border); }
+.btn-card.ghost:hover { border-color: var(--primary); }
+
+.path-card.admin { background: var(--bg); }
+.path-card.admin .tag { color: var(--muted); }
+
+.footer-note { text-align: center; color: var(--muted); font-size: 12.5px; padding-bottom: 30px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="brand">
+        <div class="brand-mark">{{ (school_name or "S")[0] }}</div>
+        <div class="brand-name">{{ school_name }}</div>
+    </div>
+    <a href="/admin/login" class="admin-link">🔐 Administrator Login</a>
+</div>
+
+<div class="hero">
+    <div class="hero-inner">
+        {% if closed %}
+        <div class="status-pill closed"><span class="dot"></span> Admissions are currently closed</div>
+        {% else %}
+        <div class="status-pill"><span class="dot"></span> Admissions Open{% if deadline %} · Apply before {{ deadline }}{% endif %}</div>
+        {% endif %}
+
+        <h1>Begin <em>{{ school_name }}'s</em><br>Admissions Journey</h1>
+        <p class="lede">A simple, secure online application — verify your contact details, fill in your child's information, and track your application status anytime.</p>
+
+        <div class="cta-row">
+            {% if closed %}
+            <span class="cta cta-primary disabled">🎓 Applications Closed</span>
+            {% else %}
+            <a href="/register" class="cta cta-primary">🎓 Start New Application</a>
+            {% endif %}
+            <a href="/students" class="cta cta-secondary">🔍 Check Application Status</a>
+        </div>
+    </div>
+</div>
+
+<div class="seat-panel">
+    <div class="seat-panel-head">
+        <h2>🪑 Live Seat Availability</h2>
+        <div class="seat-overall">
+            <strong>{{ total_seats - filled_seats }}</strong> of {{ total_seats }} seats open across all classes
+        </div>
+    </div>
+    <div class="overall-bar-wrap">
+        <div class="overall-bar" id="overallBar" data-pct="{{ ((filled_seats / total_seats * 100) | round | int) if total_seats else 0 }}"></div>
+    </div>
+    <div class="seat-grid">
+        {% for s in seat_info %}
+        <div class="seat-item">
+            <div class="cls-name">{{ s.class_name }}</div>
+            <div class="seat-bar-wrap">
+                <div class="seat-bar" data-pct="{{ s.pct }}" style="background:{% if s.pct >= 100 %}#d63031{% elif s.pct >= 80 %}#e67e22{% else %}#1a9e5c{% endif %};"></div>
+            </div>
+            <span class="seat-tag {% if s.available <= 0 %}full{% elif s.available <= 5 %}low{% else %}avail{% endif %}">
+                {% if s.available <= 0 %}FULL{% elif s.available <= 5 %}{{ s.available }} left{% else %}{{ s.available }} open{% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="paths">
+    <div class="path-card">
+        <div class="tag">For Parents &amp; Students</div>
+        <h3>Apply or track an application</h3>
+        <p>Start a new application for your child, or look up the status of one you've already submitted using your registered mobile number.</p>
+        <div class="link-row">
+            {% if not closed %}<a href="/register" class="btn-card solid">🎓 New Application</a>{% endif %}
+            <a href="/students" class="btn-card ghost">🔍 Check Status</a>
+        </div>
+    </div>
+    <div class="path-card admin">
+        <div class="tag">For Staff</div>
+        <h3>Administrator access</h3>
+        <p>Review applications, manage seat capacity, and set deadlines from the admin dashboard.</p>
+        <div class="link-row">
+            <a href="/admin/login" class="btn-card ghost">🔐 Admin Login</a>
+        </div>
+    </div>
+</div>
+
+<div class="footer-note">© {{ school_name }} — Online Admissions Portal</div>
+
+<script>
+// Animate seat bars in after load (signature moment)
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        document.querySelectorAll('[data-pct]').forEach(el => {
+            el.style.width = el.dataset.pct + '%';
+        });
+    }, 150);
+});
+</script>
+</body>
+</html>
