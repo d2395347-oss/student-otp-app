@@ -87,6 +87,51 @@ def init_db():
     try:
         conn   = get_db()
         cursor = conn.cursor()
+        # Create core tables if this is a brand-new database (e.g. fresh Aiven instance)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS students (
+                id                       INT AUTO_INCREMENT PRIMARY KEY,
+                name                     VARCHAR(100)  NOT NULL,
+                father_name              VARCHAR(100)  NOT NULL,
+                date_of_birth            VARCHAR(20)   NOT NULL,
+                address                  TEXT,
+                father_occupation        VARCHAR(100),
+                academic_year            VARCHAR(20),
+                previous_institution_name VARCHAR(200),
+                class_applied            VARCHAR(20)   NOT NULL,
+                category                 VARCHAR(20)   NOT NULL,
+                gender                   VARCHAR(10),
+                phone_no                 VARCHAR(15)   NOT NULL,
+                aadhaar_no               VARCHAR(64)   NOT NULL,
+                pan_no                   VARCHAR(20)   NOT NULL,
+                special_child            VARCHAR(5)    DEFAULT 'no',
+                extra_activity           VARCHAR(5)    DEFAULT 'no',
+                achievement              VARCHAR(5)    DEFAULT 'no',
+                hobbies                  VARCHAR(200),
+                sports                   VARCHAR(200),
+                special_file             VARCHAR(255),
+                extra_file               VARCHAR(255),
+                achievement_file         VARCHAR(255),
+                status                   VARCHAR(20)   DEFAULT 'pending',
+                created_at               TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS classes (
+                id           INT AUTO_INCREMENT PRIMARY KEY,
+                class_name   VARCHAR(20)  NOT NULL UNIQUE,
+                total_seats  INT          NOT NULL DEFAULT 30,
+                filled_seats INT          NOT NULL DEFAULT 0
+            )
+        """)
+        cursor.execute("""
+            INSERT IGNORE INTO classes (class_name, total_seats) VALUES
+            ('Nursery', 30), ('LKG', 30), ('UKG', 30),
+            ('CL-I', 40), ('CL-II', 40), ('CL-III', 40),
+            ('CL-IV', 40), ('CL-V', 40), ('CL-VI', 40),
+            ('CL-VII', 40), ('CL-VIII', 40), ('CL-IX', 40),
+            ('CL-X', 40), ('CL-XI', 35), ('CL-XII', 35)
+        """)
         for s in [
             "ALTER TABLE students ADD COLUMN reg_no VARCHAR(20)",
             "ALTER TABLE students ADD COLUMN email VARCHAR(150)",
