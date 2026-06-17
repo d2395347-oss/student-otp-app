@@ -390,33 +390,6 @@ def verify_otp():
     return jsonify({"status": "error", "message": "Incorrect OTP."})
 
 
-# -------- SEND WHATSAPP OTP --------
-@app.route("/send_whatsapp_otp", methods=["POST"])
-def send_whatsapp_otp():
-    if is_deadline_passed():
-        return jsonify({"status": "error", "message": "Registration deadline has passed."})
-    
-    raw   = request.form.get("phone", "")
-    phone = normalize_phone(raw)
-    
-    if not valid_mobile(phone):
-        return jsonify({"status": "error", "message": "Invalid mobile number"})
-    
-    otp = str(random.randint(100000, 999999))
-    otp_store[f"wa_{phone}"] = {"otp": otp, "time": time.time()}
-    print(f"[WA OTP] {otp} → {phone}")
-    
-    try:
-        twilio_client.messages.create(
-            body=f"🏫 {SCHOOL_NAME}\n\nYour WhatsApp OTP is: *{otp}*\nValid for 5 minutes. Do not share.",
-            from_=TWILIO_WHATSAPP_NUMBER,
-            to=f"whatsapp:{phone}"
-        )
-        return jsonify({"status": "success"})
-    except Exception as e:
-        print(f"[WA OTP] ERROR: {e}")
-        return jsonify({"status": "error", "message": str(e)})
-
 # -------- VERIFY WHATSAPP OTP --------
 @app.route("/verify_whatsapp_otp", methods=["POST"])
 def verify_whatsapp_otp():
