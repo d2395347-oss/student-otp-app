@@ -341,6 +341,21 @@ def notify_rejected(name, phone, email, cls, reg_no=""):
 
 @app.route("/")
 def home():
+    seat_info  = get_all_seat_info()
+    total_seats   = sum(s["total_seats"] for s in seat_info) if seat_info else 0
+    filled_seats  = sum(s["filled_seats"] for s in seat_info) if seat_info else 0
+    return render_template(
+        "home.html",
+        school_name=SCHOOL_NAME,
+        seat_info=seat_info,
+        total_seats=total_seats,
+        filled_seats=filled_seats,
+        closed=is_deadline_passed(),
+        deadline=get_deadline()
+    )
+
+@app.route("/register")
+def register():
     deadline   = get_deadline()
     closed     = is_deadline_passed()
     seat_info  = get_all_seat_info()
@@ -480,9 +495,15 @@ def verify_email_otp():
 def submit():
     if is_deadline_passed():
         return "Registration deadline has passed.", 400
-    phone = normalize_phone(request.form.get("mobile", ""))
-    if phone not in otp_verified:
-        return "Mobile not verified.", 400
+    phone       = normalize_phone(request.form.get("mobile", ""))
+    email_check = request.form.get("email", "").strip().lower()
+
+    verified_sms      = phone in otp_verified
+    verified_whatsapp = f"wa_{phone}" in otp_verified
+    verified_email    = f"email_{email_check}" in otp_verified
+
+    if not (verified_sms or verified_whatsapp or verified_email):
+        return "Please verify your Mobile number, WhatsApp, or Email before submitting (at least one is required).", 400
 
     name                 = request.form.get("name","").strip()
     father_name          = request.form.get("father_name","").strip()
