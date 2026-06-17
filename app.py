@@ -312,7 +312,7 @@ def send_email(to, subject, html):
         m = MIMEMultipart("alternative")
         m["Subject"] = subject; m["From"] = f"{SCHOOL_NAME} <{GMAIL_USER}>"; m["To"] = to
         m.attach(MIMEText(html, "html"))
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as s:
             s.login(GMAIL_USER, GMAIL_PASSWORD); s.sendmail(GMAIL_USER, to, m.as_string())
         print(f"[Email] Sent to {to}")
     except Exception as e: print(f"[Email] ERROR: {e}")
@@ -462,7 +462,7 @@ def send_email_otp():
         m["From"]    = f"{SCHOOL_NAME} <{GMAIL_USER}>"
         m["To"]      = email
         m.attach(MIMEText(html, "html"))
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as s:
             s.login(GMAIL_USER, GMAIL_PASSWORD)
             s.sendmail(GMAIL_USER, email, m.as_string())
         print(f"[EMAIL OTP] Sent to {email}")
