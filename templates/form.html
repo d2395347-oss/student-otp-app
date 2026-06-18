@@ -663,7 +663,162 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ===== AI FORM ASSISTANT ===== -->
+<style>
+.assist-fab {
+    position: fixed; bottom: 22px; right: 22px; z-index: 1200;
+    width: 58px; height: 58px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #2a5caa);
+    color: white; border: none; font-size: 26px; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(26,60,110,0.35);
+    display: flex; align-items: center; justify-content: center;
+    animation: assistPulse 2.4s infinite;
+}
+@keyframes assistPulse { 0%,100% { box-shadow:0 8px 24px rgba(26,60,110,0.35); } 50% { box-shadow:0 8px 28px rgba(232,160,32,0.5); } }
+.assist-badge {
+    position: absolute; top: -4px; right: -4px; background: var(--accent);
+    color: white; font-size: 10px; font-weight: 700; border-radius: 10px;
+    padding: 2px 6px; display: none;
+}
+.assist-panel {
+    position: fixed; bottom: 90px; right: 22px; z-index: 1200;
+    width: min(330px, calc(100vw - 32px)); max-height: 70vh;
+    background: white; border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.22);
+    display: none; flex-direction: column; overflow: hidden;
+    border: 1.5px solid var(--border);
+}
+.assist-panel.open { display: flex; animation: assistIn 0.2s ease; }
+@keyframes assistIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.assist-head {
+    background: linear-gradient(135deg, var(--primary), #2a5caa); color: white;
+    padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+}
+.assist-head .t { font-weight: 700; font-size: 14px; display:flex; align-items:center; gap:8px; }
+.assist-head .close { background: none; border: none; color: white; font-size: 18px; cursor: pointer; opacity: 0.85; }
+.assist-body { flex: 1; overflow-y: auto; padding: 14px; background: var(--bg); display: flex; flex-direction: column; gap: 10px; }
+.assist-msg { max-width: 88%; padding: 10px 13px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+.assist-msg.bot { background: white; border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 3px; }
+.assist-msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 3px; }
+.assist-foot { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border); background: white; }
+.assist-foot input { flex: 1; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: 'DM Sans',sans-serif; }
+.assist-foot input:focus { outline: none; border-color: var(--primary); }
+.assist-foot button { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 14px; font-weight: 700; cursor: pointer; font-size: 13px; }
+.assist-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 12px; background: var(--bg); }
+.assist-quick button { background: white; border: 1.5px solid var(--border); border-radius: 16px; padding: 6px 12px; font-size: 11.5px; font-weight: 600; color: var(--primary); cursor: pointer; }
+.assist-quick button:hover { border-color: var(--primary); }
+</style>
+
+<button class="assist-fab" id="assistFab" onclick="toggleAssistant()">🤖<span class="assist-badge" id="assistBadge">!</span></button>
+
+<div class="assist-panel" id="assistPanel">
+    <div class="assist-head">
+        <div class="t">🤖 Smart Form Assistant</div>
+        <button class="close" onclick="toggleAssistant()">✕</button>
+    </div>
+    <div class="assist-body" id="assistBody"></div>
+    <div class="assist-quick">
+        <button onclick="assistAsk('OTP verification')">OTP help</button>
+        <button onclick="assistAsk('Aadhaar')">Aadhaar?</button>
+        <button onclick="assistAsk('Photo upload')">Photo rules</button>
+        <button onclick="assistAsk('Registration number')">Reg. No?</button>
+    </div>
+    <div class="assist-foot">
+        <input type="text" id="assistInput" placeholder="Ask me anything about this form..." onkeypress="if(event.key==='Enter')assistSend()">
+        <button onclick="assistSend()">➤</button>
+    </div>
+</div>
+
 <script>
+// ============================================================
+// AI FORM ASSISTANT — contextual tips + lightweight Q&A
+// ============================================================
+const assistTips = {
+    name: "Enter the student's full legal name exactly as on their birth certificate — it'll be used on all official admission documents.",
+    father_name: "Enter the father's (or legal guardian's) full name as per official records.",
+    date_of_birth: "Pick the student's date of birth — most schools have an age cutoff for each class, so double-check this matches official documents.",
+    gender: "Select the gender as per the student's official documents.",
+    photo: "Upload a recent, clear passport-style photo (JPEG or PNG). Make sure the face is well-lit and clearly visible — this will appear on the admit card.",
+    category: "Select the category as per the certificate you'll be asked to submit later (General/SC/ST/OBC etc., as applicable).",
+    class_applied: "Pick the class you're applying for. Check the seat availability shown above — some classes may be nearly full!",
+    phone: "Enter a 10-digit mobile number (no country code, no spaces). You'll receive SMS OTP and updates here.",
+    wa_phone: "Enter a 10-digit number that's active on WhatsApp if you'd like to verify using WhatsApp instead of SMS or Email — you only need ONE verified method.",
+    email: "Enter a valid email address. You'll receive a confirmation and can use this for Email OTP verification too.",
+    aadhaar: "Enter the 12-digit Aadhaar number. For privacy, it's encrypted (hashed) before being stored — it's never saved in plain text.",
+    pan_no: "Enter the PAN in the format ABCDE1234F (5 letters, 4 digits, 1 letter), usually the parent/guardian's PAN.",
+    declaration: "Tick this box to confirm the information you've entered is accurate to the best of your knowledge — it's required to submit."
+};
+
+const assistFaqs = [
+    { k: ['otp','verify','verification','sms','whatsapp','email otp'], a: "You only need to verify <b>ONE</b> of the three: Mobile (SMS), WhatsApp, or Email. Pick whichever is easiest, click its 'Send OTP' button, then type the 6-digit code you receive. You don't need to do all three!" },
+    { k: ['aadhaar'], a: "Aadhaar is used only to verify identity. It's encrypted before being stored in our database — we never store or display the raw number." },
+    { k: ['photo','image','picture','upload'], a: "Upload a recent passport-style photo in JPEG or PNG format. Keep the file size reasonable and make sure the face is clearly visible — this is used on the admit card." },
+    { k: ['pan'], a: "PAN should be entered in the format ABCDE1234F — usually the parent or guardian's PAN card number." },
+    { k: ['reg','registration number','reg no','reg. no'], a: "Your unique Registration Number is generated automatically right after you submit the form. Save it — you'll need it to check your application status later on the 'Check Status' page!" },
+    { k: ['deadline','last date','closed'], a: "If a deadline is set by the school, you'll see it displayed at the top of this page. Try to submit well before it — late submissions can't be accepted." },
+    { k: ['seat','full','available','class full'], a: "Live seat availability for each class is shown when you select a class, and also on the home page. If a class shows 'FULL', you may want to contact the school directly." },
+    { k: ['category'], a: "Select your category as it appears on your official category certificate, since this may be verified later by the school." },
+    { k: ['fee','fees','payment'], a: "Fee details are shared by the school after your application is reviewed and accepted — you'll get an SMS/Email with the date and instructions." },
+    { k: ['hello','hi','hey'], a: "Hi there! 👋 I'm here to help you fill out this registration form. Click any field, or ask me a question using the buttons or box below." }
+];
+
+function assistAddMsg(text, who) {
+    const body = document.getElementById('assistBody');
+    const div = document.createElement('div');
+    div.className = 'assist-msg ' + who;
+    div.innerHTML = text;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+}
+
+function assistAnswer(query) {
+    const q = query.toLowerCase();
+    for (const f of assistFaqs) {
+        if (f.k.some(kw => q.includes(kw))) return f.a;
+    }
+    return "I'm not totally sure about that one — but try asking about <b>OTP verification</b>, <b>Aadhaar</b>, <b>PAN</b>, <b>photo upload</b>, <b>seats</b>, or your <b>registration number</b>. Or just click into any field on the form and I'll give you a tip automatically!";
+}
+
+function assistAsk(text) {
+    assistAddMsg(text, 'user');
+    setTimeout(() => assistAddMsg(assistAnswer(text), 'bot'), 300);
+}
+
+function assistSend() {
+    const input = document.getElementById('assistInput');
+    const val = input.value.trim();
+    if (!val) return;
+    assistAsk(val);
+    input.value = '';
+}
+
+let assistOpened = false;
+function toggleAssistant() {
+    const panel = document.getElementById('assistPanel');
+    panel.classList.toggle('open');
+    document.getElementById('assistBadge').style.display = 'none';
+    if (panel.classList.contains('open') && !assistOpened) {
+        assistOpened = true;
+        assistAddMsg("Hi! 👋 I'm your Smart Form Assistant. Click into any field and I'll give you a tip — or ask me anything below.", 'bot');
+    }
+}
+
+// Contextual tips as the student moves through the form
+Object.keys(assistTips).forEach(fieldId => {
+    const el = document.getElementById(fieldId);
+    if (!el) return;
+    el.addEventListener('focus', () => {
+        const panel = document.getElementById('assistPanel');
+        if (!panel.classList.contains('open')) {
+            document.getElementById('assistBadge').style.display = 'block';
+        } else {
+            assistAddMsg(assistTips[fieldId], 'bot');
+        }
+    });
+});
+</script>
+
+<script>
+
 // ============================================================
 // STATE
 // ============================================================
